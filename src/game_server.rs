@@ -16,6 +16,7 @@ impl GameServerCommand {
 pub struct GameServer {
   pub name: String,
   pub cmd: GameServerCommand,
+  pub dir: String,
   // Null if not connected to database yet
   pub id: Option<i32>
 }
@@ -29,11 +30,12 @@ pub fn start_server(game_server: GameServer) {
   let full_cmd_str = game_server.clone().get_full_cmd();
   println!("{}", full_cmd_str);
 
-  run_cmd(game_server.cmd.cmd, game_server.cmd.args);
+  run_cmd(game_server.cmd.cmd, game_server.cmd.args, game_server.dir);
 }
 
-pub fn run_cmd(cmd_str: String, args: Vec<String>) {
+pub fn run_cmd(cmd_str: String, args: Vec<String>, cwd: String) {
   let mut cmd = Command::new(cmd_str)
+        .current_dir(cwd)
         .args(args)
         .stdout(Stdio::piped())
         .spawn()
