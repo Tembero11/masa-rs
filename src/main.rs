@@ -1,6 +1,8 @@
 use crate::game_server::{GameServer, GameServerCommand};
 
 mod game_server;
+mod console_reader;
+mod events;
 
 fn main() {
   println!("Hello from Masa!");

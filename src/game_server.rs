@@ -1,5 +1,6 @@
 use std::process::{Command, Stdio};
 use std::io::{BufReader, BufRead};
+use crate::console_reader::{self, parse};
 
 #[derive(Clone, Debug)]
 pub struct GameServerCommand {
@@ -30,7 +31,26 @@ pub fn start_server(game_server: GameServer) {
   let full_cmd_str = game_server.clone().get_full_cmd();
   println!("{}", full_cmd_str);
 
-  run_cmd(game_server.cmd.cmd, game_server.cmd.args, game_server.dir);
+  let mut cmd = Command::new(game_server.cmd.cmd)
+        .current_dir(game_server.dir)
+        .args(game_server.cmd.args)
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Server failed to start!");
+
+    {
+        let stdout = cmd.stdout.as_mut().unwrap();
+        let stdout_reader = BufReader::new(stdout);
+        let stdout_lines = stdout_reader.lines();
+
+        for wrapped_line in stdout_lines {
+          let line = wrapped_line.unwrap();
+            println!("[{} Server Output] {}", game_server.name, line);
+            console_reader::parse(line);
+        }
+    }
+
+    cmd.wait().unwrap();
 }
 
 pub fn run_cmd(cmd_str: String, args: Vec<String>, cwd: String) {
