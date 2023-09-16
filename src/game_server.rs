@@ -19,7 +19,8 @@ pub struct GameServer {
   pub cmd: GameServerCommand,
   pub dir: String,
   // Null if not connected to database yet
-  pub id: Option<i32>
+  pub id: Option<i32>,
+  pub state: ServerState
 }
 impl GameServer {
     pub fn get_full_cmd(self) -> String {
@@ -27,13 +28,23 @@ impl GameServer {
     }
 }
 
-pub fn start_server(game_server: GameServer) {
+#[derive(Clone, Debug)]
+pub struct ServerState {
+  pub is_ready: bool,
+}
+impl ServerState {
+  pub fn init() -> ServerState {
+    ServerState { is_ready: false }
+  }
+}
+
+pub fn start_server(game_server: &mut GameServer) {
   let full_cmd_str = game_server.clone().get_full_cmd();
   println!("{}", full_cmd_str);
 
-  let mut cmd = Command::new(game_server.cmd.cmd)
-        .current_dir(game_server.dir)
-        .args(game_server.cmd.args)
+  let mut cmd = Command::new(&game_server.cmd.cmd)
+        .current_dir(&game_server.dir)
+        .args(&game_server.cmd.args)
         .stdout(Stdio::piped())
         .spawn()
         .expect("Server failed to start!");
@@ -46,7 +57,8 @@ pub fn start_server(game_server: GameServer) {
         for wrapped_line in stdout_lines {
           let line = wrapped_line.unwrap();
             println!("[{} Server Output] {}", game_server.name, line);
-            console_reader::parse(line);
+            let event = console_reader::parse(line, game_server);
+            println!("{:?}", event);
         }
     }
 

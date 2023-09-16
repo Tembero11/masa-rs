@@ -1,4 +1,4 @@
-use crate::game_server::{GameServer, GameServerCommand};
+use crate::game_server::{GameServer, GameServerCommand, ServerState};
 
 mod game_server;
 mod console_reader;
@@ -10,7 +10,7 @@ fn main() {
   game_server::run_cmd(String::from("java"), Vec::from([String::from("--version")]), String::from("."));
 
   // Testing...
-  let test_server = GameServer {
+  let mut test_server = GameServer {
     name: String::from("testi_servu"),
     dir: String::from("test_server"),
     cmd: GameServerCommand {
@@ -24,7 +24,8 @@ fn main() {
       ])
     },
     id: None,
+    state: ServerState::init(),
   };
 
-  game_server::start_server(test_server);
+  game_server::start_server(&mut test_server);
 }
